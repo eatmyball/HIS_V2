@@ -22,17 +22,17 @@ import { LoadingController, AlertController } from 'ionic-angular';
 export class Service {
 
     //config*********************************************************
-    version = "1.0.1(20190410001)";
+    version = "1.0.2(2019121201)";
     mode = "test";//dev, test, prod
     dev = "dev";
     test = "test";
     prod = "prod";
     devPrefix = "/apid";
-    testPrefix = "http://happyship.wisebox.com.cn:8080/happyship";
+    testPrefix = "http://106.14.61.156/kmfs";
     // testPrefix = "http://172.28.112.208:8080/yozan"
     // testPrefix = "http://transport.shyozan.com/yozantest";
     // prodPrefix = "http://hrwechat-qas.svw.cn";
-    prodPrefix = "http://transport.shyozan.com/";
+    prodPrefix = "http://106.14.61.156/kmfs";
     timeout = 30000;
     apptimeout = 60000;
     interval = 600000;

@@ -70,11 +70,13 @@ export class LoginPage {
           }
         });
         //记录推送alias
-        (<any>window).JPush.setAlias({sequence:1, alias: user.LoginID}, (result)=>{
-          console.log('Jpush set alias success');
-        }, (error)=>{
-          console.log('Jpush set alias failed:'+error.code);
-        });
+        
+        // (<any>window).JPush.setAlias({sequence:1, alias: user.LoginID}, (result)=>{
+        //   console.log('Jpush set alias success');
+        // }, (error)=>{
+        //   console.log('Jpush set alias failed:'+error.code);
+        // });
+
       } else {
         loader.dismiss();
         let alert = this.alertCtrl.create({

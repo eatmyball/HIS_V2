@@ -46,7 +46,8 @@
         <p *ngIf="item.status == '已开始'" style="color: #58c54a !important;">当前状态：{{item.status}}</p>
         <p>始发科室：{{item.fromLocationName}}</p>
         <p>目的科室：{{item.toLocationName}}</p>
-        <p>运送工具：{{item.transferTool}}</p>
+        <p *ngIf="item.transferTool">运送工具：{{item.transferTool}}</p>
+        <p *ngIf="!item.transferTool">运送工具：无</p>
       </ion-item>
 
       <!--<ion-item-options>-->

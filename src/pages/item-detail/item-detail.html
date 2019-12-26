@@ -30,21 +30,27 @@
     <ion-item>
       <h2>详细信息</h2>
       <h3>预约时间：<p class="description_ten">{{detail.data.appointmentTime}}</p></h3>
-      <h3>紧急程度级别：<p class="description_ten">{{detail.data.emergencyLevel}}</p></h3>
+       <!-- <h3>始发科室编号：<p class="description_ten">{{detail.data.fromLocationCode}}</p></h3> -->
+      <h3>始发科室：<p class="description_ten">{{detail.data.fromLocationName}}</p></h3>
+       <!-- <h3>目的科室编号：<p class="description_ten">{{detail.data.toLocationCode}}</p></h3> -->
+      <h3>目的科室：<p class="description_ten">{{detail.data.toLocationName}}</p></h3>
+      
       <h3>运送模式：<p class="description_ten">{{detail.data.transferMode}}</p></h3>
       <h3>运送类型：<p class="description_ten">{{detail.data.transferType}}</p></h3>
-      <h3>运送项目：<p class="description_ten">{{detail.data.transferItem}}</p></h3>
-      <h3>运送工具：<p class="description_ten">{{detail.data.transferTool}}</p></h3>
+      <h3 *ngIf="detail.data.transferType == '标本'||detail.data.transferType == '药品'" >运送项目：<p class="description_ten">{{detail.data.transferItem}}</p></h3>
+      <h3 *ngIf="detail.data.transferTool" >运送工具：<p class="description_ten">{{detail.data.transferTool}}</p></h3>
+      <h3 *ngIf="!detail.data.transferTool">运送工具：<p class="description_ten">无</p></h3>
+      <h3>紧急程度：<p class="description_ten">{{detail.data.emergencyLevel}}</p></h3>
 
-      <!-- <h3>始发科室编号：<p class="description_ten">{{detail.data.fromLocationCode}}</p></h3> -->
-      <h3>始发科室：<p class="description_ten">{{detail.data.fromLocationName}}</p></h3>
-      <!-- <h3>目的科室编号：<p class="description_ten">{{detail.data.toLocationCode}}</p></h3> -->
-      <h3>目的科室：<p class="description_ten">{{detail.data.toLocationName}}</p></h3>
-      <h3>病床号：<p class="description_ten">{{detail.data.sickbed}}</p></h3>
-      <h3>住院号：<p class="description_ten">{{detail.data.patientNo}}</p></h3>
-      <h3>病人姓名：<p class="description_ten">{{detail.data.patientName}}</p></h3>
-      <h3>病人性别：<p class="description_ten">{{detail.data.patientSex}}</p></h3>
-      <h3>病人年龄：<p class="description_ten">{{detail.data.patientAge}}</p></h3>
+      <h3 *ngIf="detail.data.transferType != '病人'" >数量：<p class="description_ten">{{detail.data.quantity}}</p></h3>
+
+      <h3 *ngIf="detail.data.transferType == '病人'" >检查项目：<p class="description_ten">{{detail.data.inspectionItem}}</p></h3>
+      <h3 *ngIf="detail.data.transferType == '病人'" >病床号：<p class="description_ten">{{detail.data.sickbed}}</p></h3>
+      <h3 *ngIf="detail.data.transferType == '病人'" >住院号：<p class="description_ten">{{detail.data.patientNo}}</p></h3>
+      <h3 *ngIf="detail.data.transferType == '病人'" >病人姓名：<p class="description_ten">{{detail.data.patientName}}</p></h3>
+      <h3 *ngIf="detail.data.transferType == '病人'" >病人性别：<p class="description_ten">{{detail.data.patientSex}}</p></h3>
+      <h3 *ngIf="detail.data.transferType == '病人'" >病人年龄：<p class="description_ten">{{detail.data.patientAge}}</p></h3>
+
       <!--<h3>运送人员：<p class="description_ten">{{detail.data.operatorCode}} | {{detail.data.operatorName}}</p></h3>-->
 
       <!--<h3>标准时长：<p class="description_ten">{{detail.data.standardLength}}</p></h3>

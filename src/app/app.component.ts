@@ -30,7 +30,7 @@ export class MyApp {
     constructor(public platform: Platform, public ionicApp: IonicApp, private service: Service,private toastCtrl: ToastController, private keyboard: Keyboard, public alertCtrl: AlertController, public loadingCtrl: LoadingController, public renderer: Renderer, storage: Storage, private iab: InAppBrowser, private splash:SplashScreen) {
         platform.ready().then(() => {
             StatusBar.styleDefault();
-            this.initJPush();
+            // this.initJPush();
             this.registerBackButtonAction();//注册返回按键事件
             this.doInit();
             this.splash.hide();
@@ -63,11 +63,11 @@ export class MyApp {
                     }
                 });
                 //记录推送alias
-                (<any>window).JPush.setAlias({sequence:1, alias: user.LoginID}, (result)=>{
-                    console.log('Jpush set alias success');
-                }, (error)=>{
-                    console.log('Jpush set alias failed:'+error.code);
-                });
+                // (<any>window).JPush.setAlias({sequence:1, alias: user.LoginID}, (result)=>{
+                //     console.log('Jpush set alias success');
+                // }, (error)=>{
+                //     console.log('Jpush set alias failed:'+error.code);
+                // });
                 
             } else {
                 this.rootPage = LoginPage;
