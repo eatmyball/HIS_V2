@@ -31,9 +31,22 @@
       <h2>详细信息</h2>
       <h3>预约时间：<p class="description_ten">{{detail.data.appointmentTime}}</p></h3>
        <!-- <h3>始发科室编号：<p class="description_ten">{{detail.data.fromLocationCode}}</p></h3> -->
-      <h3>始发科室：<p class="description_ten">{{detail.data.fromLocationName}}</p></h3>
+       <h3 *ngIf="detail.data.transferType != '标本'" >始发科室：<p class="description_ten">{{detail.data.fromLocationName}}</p></h3>
+       <h3 *ngIf="detail.data.transferType == '标本'">始发科室：<div class="description_ten">
+        <div *ngFor="let item of specimenTransferTask.fromLocationList">
+         <div [ngClass]="item.isDone? 'div-task-done':'div-task'" *ngIf="item.isDone" >{{item.name}}(已扫码)</div>
+         <div [ngClass]="item.isDone? 'div-task-done':'div-task'" *ngIf="!item.isDone">{{item.name}}</div>
+        </div>
+      </div></h3>
        <!-- <h3>目的科室编号：<p class="description_ten">{{detail.data.toLocationCode}}</p></h3> -->
-      <h3>目的科室：<p class="description_ten">{{detail.data.toLocationName}}</p></h3>
+       <h3 *ngIf="detail.data.transferType != '标本'">目的科室：<p class="description_ten">{{detail.data.toLocationName}}</p></h3>
+       <h3 *ngIf="detail.data.transferType == '标本'">目的科室：<div class="description_ten">
+        <div *ngFor="let item of specimenTransferTask.toLocationList">
+         <div [ngClass]="item.isDone? 'div-task-done':'div-task'" *ngIf="item.isDone" >{{item.name}}(已扫码)</div>
+         <div [ngClass]="item.isDone? 'div-task-done':'div-task'" *ngIf="!item.isDone">{{item.name}}</div>
+        </div>
+      </div>
+      </h3>
       
       <h3>运送模式：<p class="description_ten">{{detail.data.transferMode}}</p></h3>
       <h3>运送类型：<p class="description_ten">{{detail.data.transferType}}</p></h3>
@@ -81,10 +94,10 @@
       <!--<button class="detail-button refuse" (click)="reject()">退回</button>-->
       <!--<button class="detail-button add" (click)="supplement()">申请变更</button>-->
       <button class="detail-button refuse" (click)="back()">返回</button>
-      <button class="detail-button hidden" [disabled]="detail.data.status == '完工'" >{{btn_action_text_manual}}</button>
+      <button class="detail-button" *ngIf="false"  [disabled]="detail.data.status == '完工'" >{{btn_action_text_manual}}</button>
       <button class="detail-button agree" [disabled]="detail.data.status == '完工'" (click)="approve()">{{btn_action_text}}</button>
 
-
+      <button class="detail-button agree" *ngIf="detail.data.transferType == '标本'"  [disabled]="detail.data.status == '完工'" (click)="forceCompleted()">强制完成</button>
     </div>
     <!--<ion-segment>
       <ion-segment-button value="create" (ionSelect)="approve()">

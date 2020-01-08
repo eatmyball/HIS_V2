@@ -36,6 +36,8 @@ const BTN_TEXT_RECEIVE_MANUAL: string = '手工接受';
 const BTN_TEXT_START:string = '扫码开始';
 const BTN_TEXT_COMPLETE: string = '扫码完成';
 const BTN_TEXT_COMPLETE_MANUAL: string = '手工完成';
+//昆明医院
+const DISPATCH_CENTER_CODE: string = '01005A00099';
 
 @Component({
     selector: 'page-item-detail',
@@ -66,11 +68,81 @@ export class ItemDetailPage {
     btn_action_text: string = '';
     btn_action_text_manual: string = '';
 
+    isMultiLocationTask = false;
+    //标本运送任务结构
+    specimenTransferTask = null;
+
     //contactsCallback;
     constructor(private zbar: ZBar, public navCtrl: NavController, public navParams: NavParams, public viewCtrl: ViewController, public service: Service, public alertCtrl: AlertController, public loadingCtrl: LoadingController, public modalCtrl: ModalController, public ngZone: NgZone) {
         this.item = this.navParams.get("para");
         this.index = this.navParams.get("index");
         this.detail = this.navParams.get("detail");
+        //标本类型，多个目的地科室
+        if(this.detail.data.transferType == '标本') {
+            this.service.getSpecimenTransferTask(this.item.billNo).then(data=>{
+                if(data) {
+                    this.specimenTransferTask = data;
+                }
+            }).catch(error=>{
+                this.specimenTransferTask = null;
+            });
+            if(this.specimenTransferTask == null) {
+                let fromLocationTaskList = []
+                let toLocationTaskList = [];
+
+                if(this.detail.data.toLocationName.indexOf(',') > 0) {
+                    
+                    let list = this.detail.data.toLocationCode.split(',');
+                    let nameList = this.detail.data.toLocationName.split(',');
+
+                    if(list&&list.length > 0) {
+                        
+                        for(let index in list) {
+                            let obj = {};
+                            obj['name'] = nameList[index];
+                            obj['code'] = list[index];
+                            obj['isDone'] = false;
+                            toLocationTaskList.push(obj);
+                        }
+                    }
+                    
+                }else {
+                    let obj = {};
+                    obj['name'] = this.detail.data.toLocationName;
+                    obj['code'] = this.detail.data.toLocationCode;
+                    obj['isDone'] = false;
+                    toLocationTaskList.push(obj);
+                }
+
+                if(this.detail.data.fromLocationName.indexOf(',') > 0) {
+                    let list = this.detail.data.fromLocationCode.split(',');
+                    let nameList = this.detail.data.fromLocationName.split(',');
+
+                    if(list&&list.length > 0) {
+                        for(let index in list) {
+                            let obj = {};
+                            obj['name'] = nameList[index];
+                            obj['code'] = list[index];
+                            obj['isDone'] = false;
+                            fromLocationTaskList.push(obj);
+                        }
+                        
+                    }
+                }else {
+                    let obj = {};
+                    obj['name'] = this.detail.data.fromLocationName;
+                    obj['code'] = this.detail.data.fromLocationCode;
+                    obj['isDone'] = false;
+                    fromLocationTaskList.push(obj);
+                }
+                this.specimenTransferTask = {};
+                this.specimenTransferTask['toLocationList'] = toLocationTaskList;
+                this.specimenTransferTask['fromLocationList'] = fromLocationTaskList;
+                this.service.saveSpecimenTransferTask(this.item.billNo, this.specimenTransferTask);
+
+            }
+        }
+
         console.log(this.index.items);
     }
 
@@ -81,6 +153,7 @@ export class ItemDetailPage {
             this.btn_action_text = BTN_TEXT_START;
         }else if (this.detail.data.status == STATUS_STARTED) {
             this.btn_action_text = BTN_TEXT_COMPLETE;
+            
         }
     }
 
@@ -133,18 +206,7 @@ export class ItemDetailPage {
 
             this.zbar.scan(options)
                 .then(result => {
-                    console.log(result);
-                    if (result == this.detail.data.fromLocationCode) {
-                        this.process(this.item, this.index, {note: STATUS_STARTED, supp: ''});
-                    } else {
-                        let alert = this.alertCtrl.create({
-                            title: "提示",
-                            message: "请扫描正确的始发科室(" + this.detail.data.fromLocationName + ")二维码",
-                            buttons: ["确定"]
-                        });
-                        alert.present();
-                    }
-                    console.log(result);
+                    this.processStarted(result);
                 })
                 .catch(error => {
                     if (error != "cancelled") {
@@ -153,7 +215,7 @@ export class ItemDetailPage {
                     console.log(error);
                 });
         }else if (this.detail.data.status == STATUS_STARTED) {
-            console.log("已接受");
+                console.log("已接受");
             let options: ZBarOptions = {
                 text_title: "",
                 text_instructions: "请扫描目的科室二维码",
@@ -161,9 +223,102 @@ export class ItemDetailPage {
                 drawSight: true
             };
 
-            this.zbar.scan(options)
-                .then(result => {
-                    console.log(result);
+            this.zbar.scan(options).then(result => {
+                this.processCompleted(result);
+                }).catch(error => {
+                    if (error != "cancelled") {
+                        alert(JSON.stringify(error));
+                    }
+                    console.log(error);
+                });
+            }
+            // this.process(this.item, this.index, { note: STATUS_COMPLETED, supp: '' });
+    }
+
+    processStarted(result:string) {
+        console.log(result);
+        if(this.detail.data.transferType == '标本') {
+            //多个始发科室
+            if(this.detail.data.toLocationCode.indexOf(',') > 0) {
+                for(let index in this.specimenTransferTask['fromLocationList']) {
+                    if(result == this.specimenTransferTask['fromLocationList'][index]['code']) {
+                        if(!this.specimenTransferTask['fromLocationList'][index]['isDone']) {
+                            this.specimenTransferTask['fromLocationList'][index]['isDone'] = true;
+                            this.service.saveSpecimenTransferTask(this.item.billNo,this.specimenTransferTask);
+                        }else {
+                            let alert = this.alertCtrl.create({
+                                title: "提示",
+                                message: "该科室任务已完成，请勿重复扫码",
+                                buttons: ["确定"]
+                            });
+                            alert.present();
+                        }
+                        
+                    }
+                }
+                //遍历是否都完成
+                let isCompleted = true;
+                for(let index in this.specimenTransferTask['fromLocationList']) {
+                    if(!this.specimenTransferTask['fromLocationList'][index]['isDone']) {
+                        isCompleted = false;
+                    }
+                }
+                if(isCompleted) {
+                    //扫描全部始发科室后，开始任务
+                    this.process(this.item, this.index, {note: STATUS_STARTED, supp: ''});
+                }
+            }
+        }
+        else {
+            if (result == this.detail.data.fromLocationCode) {
+                this.process(this.item, this.index, {note: STATUS_STARTED, supp: ''});
+            } else {
+                let alert = this.alertCtrl.create({
+                    title: "提示",
+                    message: "请扫描正确的始发科室(" + this.detail.data.fromLocationName + ")二维码",
+                    buttons: ["确定"]
+                });
+                alert.present();
+            }
+        }
+    }
+
+    // 完工操作
+    processCompleted(result:string) {
+        console.log(result);
+        if(this.detail.data.transferType == '标本') {
+            //多个目的科室
+            if(this.detail.data.toLocationCode.indexOf(',') > 0) {
+                for(let index in this.specimenTransferTask['toLocationList']) {
+                    if(result == this.specimenTransferTask['toLocationList'][index]['code']) {
+                        if(!this.specimenTransferTask['toLocationList'][index]['isDone']) {
+                            this.specimenTransferTask['toLocationList'][index]['isDone'] = true;
+                            this.service.saveSpecimenTransferTask(this.item.billNo,this.specimenTransferTask);
+                        }else {
+                            let alert = this.alertCtrl.create({
+                                title: "提示",
+                                message: "该科室任务已完成，请勿重复扫码",
+                                buttons: ["确定"]
+                            });
+                            alert.present();
+                        }
+                        
+                    }
+                }
+                //遍历是否都完成
+                let isCompleted = true;
+                for(let index in this.specimenTransferTask['toLocationList']) {
+                    if(!this.specimenTransferTask['toLocationList'][index]['isDone']) {
+                        isCompleted = false;
+                    }
+                }
+                if(isCompleted) {
+                    //运送任务完成
+                    this.process(this.item, this.index, { note: STATUS_COMPLETED, supp: '' });
+                }
+            }
+            else {
+                if(this.detail.data.toLocationCode) {
                     if (result == this.detail.data.toLocationCode) {
                         this.process(this.item, this.index, { note: STATUS_COMPLETED, supp: '' });
                     } else {
@@ -174,18 +329,67 @@ export class ItemDetailPage {
                         });
                         alert.present();
                     }
-                    console.log(result);
-                })
-                .catch(error => {
-                    if (error != "cancelled") {
-                        alert(JSON.stringify(error));
-                    }
-                    console.log(error);
-                });
-            // this.process(this.item, this.index, { note: STATUS_COMPLETED, supp: '' });
+                }
+            }
+        }else {
+            //目的科室不为空，则扫描目的科室
+            if(this.detail.data.toLocationCode) {
+                if (result == this.detail.data.toLocationCode) {
+                    this.process(this.item, this.index, { note: STATUS_COMPLETED, supp: '' });
+                } else {
+                    let alert = this.alertCtrl.create({
+                        title: "提示",
+                        message: "请扫描正确的目的科室(" + this.detail.data.toLocationName + ")二维码",
+                        buttons: ["确定"]
+                    });
+                    alert.present();
+                }
+            }
+            //目的科室为空，扫描调度室code
+            else {
+                if (result == DISPATCH_CENTER_CODE) {
+                    this.process(this.item, this.index, { note: STATUS_COMPLETED, supp: '' });
+                } else {
+                    let alert = this.alertCtrl.create({
+                        title: "提示",
+                        message: "请扫描调度中心二维码",
+                        buttons: ["确定"]
+                    });
+                    alert.present();
+                }
+            }
+            
         }
-
     }
+
+    //强制完成
+    forceCompleted() {
+        let alert = this.alertCtrl.create({
+            title: "提示",
+            message: "强制完成标本运送任务，请输入完工备注",
+            inputs:[
+                {
+                    name:'remark',
+                    placeholder:'请输入备注'
+                }
+            ],
+            buttons: [{
+                text:'取消',
+                role:'cancel'
+            },
+            {
+                text:'提交',
+                handler: data=>{
+                    if(data.remark) {
+                        console.log('remark is :' + data.remark);
+                        this.process(this.item, this.index, { note: STATUS_COMPLETED, remark: data.remark });
+                    }
+                }
+            }]
+        });
+        alert.present();
+    }
+    
 
     back() {
         //loader.dismiss();
@@ -198,12 +402,17 @@ export class ItemDetailPage {
         });
         loader.present();
         //console.log(item.billNo);
-        this.service.updateTransferTaskStatus(item.billNo, data.note, this.service.getCurrentUser()).subscribe((data) => {
+        let remark = data.remark != null? data.remark:'';
+        
+        this.service.updateTransferTaskStatus(item.billNo, data.note, this.service.getCurrentUser(), remark).subscribe((data) => {
             console.log('API OUTPUT:' + JSON.stringify(data));
             if (data.success === true) {
+                //移除以保存的任务
+                if(data.note == STATUS_COMPLETED) {
+                    this.service.removeSpecimenTransferTask(item.billNo);
+                }
                 loader.dismiss();
                 this.viewCtrl.dismiss({type: i});
-
             } else {
                 let message = '操作失败，请稍候再试.';
                 

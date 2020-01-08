@@ -26,6 +26,17 @@ page-item-detail {
     padding: 0.5rem 0.8rem 0.5rem 1.6rem;
     line-height: 3.2rem;
   }
+
+  .div-task-done {
+    font-size: 1.4rem;
+    color: blue;
+  }
+
+  .div-task {
+    font-size: 1.4rem;
+    color: #666;
+  }
+
 }
 
 .detail-content {
@@ -283,4 +294,6 @@ button.agree:before {
   margin-right: 0.5rem;
   vertical-align: middle;
 }
+
+
 

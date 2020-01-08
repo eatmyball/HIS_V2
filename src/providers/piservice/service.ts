@@ -22,16 +22,13 @@ import { LoadingController, AlertController } from 'ionic-angular';
 export class Service {
 
     //config*********************************************************
-    version = "1.0.2(2019121201)";
-    mode = "test";//dev, test, prod
+    version = "1.0.3(2020010601)";
+    mode = "prod";//dev, test, prod
     dev = "dev";
     test = "test";
     prod = "prod";
     devPrefix = "/apid";
     testPrefix = "http://106.14.61.156/kmfs";
-    // testPrefix = "http://172.28.112.208:8080/yozan"
-    // testPrefix = "http://transport.shyozan.com/yozantest";
-    // prodPrefix = "http://hrwechat-qas.svw.cn";
     prodPrefix = "http://106.14.61.156/kmfs";
     timeout = 30000;
     apptimeout = 60000;
@@ -125,14 +122,14 @@ export class Service {
     }
 
     //更改任务状态 完工-派工
-    updateTransferTaskStatus(billNo, billstatus, username) {
-        console.log('订单号:'+ billNo+' 订单状态:'+billstatus);
+    updateTransferTaskStatus(billNo, billstatus, username,remark?:string) {
+        console.log('订单号:'+ billNo+' 订单状态:'+billstatus+ ' userName:'+username+' remark:' + remark);
         let authHeader = new Headers();
         let body = new URLSearchParams();
         body.append("billNo", billNo);
         body.append("status", billstatus);  // "完成"
         body.append("username", username);
-
+        body.append('remark', remark!=null? remark:'');
         let url = this.getUrl('updateTransferTaskStatus');
         authHeader.append('Content-Type', 'application/x-www-form-urlencoded');
         // authHeader.append('Authorization', 'Basic ' + this.getAuthorizationBasic());
@@ -242,6 +239,7 @@ export class Service {
         this.storage.set("language", language);
     }
 
+
     getCurrentLanguage() {
         if (this.lang) {
             return this.lang;
@@ -255,6 +253,31 @@ export class Service {
                 return this.lang;
             });
         }
+    }
+
+    /**
+     * 保存标本运送任务，多目标任务完成状态
+     * @param taskId 
+     * @param transferTasks 
+     */
+    saveSpecimenTransferTask(taskId:string, transferTasks) {
+        this.storage.set(taskId, transferTasks);
+    }
+
+    /**
+     * 获取以保存的任务
+     * @param taskId 
+     */
+    getSpecimenTransferTask(taskId:string) {
+        return this.storage.get(taskId);
+    }
+
+    /**
+     * 移除任务
+     * @param taskId 
+     */
+    removeSpecimenTransferTask(taskId:string) {
+        this.storage.remove(taskId);
     }
 
     needRefresh() {
