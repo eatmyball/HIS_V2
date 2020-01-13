@@ -80,6 +80,7 @@ export class ItemDetailPage {
         //标本类型，多个目的地科室
         if(this.detail.data.transferType == '标本') {
             this.service.getSpecimenTransferTask(this.item.billNo).then(data=>{
+                console.log('Saved data no:'+ this.item.billNo+ ' data:'+ JSON.stringify(data));
                 if(data) {
                     this.specimenTransferTask = data;
                 }
@@ -238,10 +239,12 @@ export class ItemDetailPage {
     processStarted(result:string) {
         console.log(result);
         if(this.detail.data.transferType == '标本') {
+            let isScanSuccess = false;
             //多个始发科室
-            if(this.detail.data.toLocationCode.indexOf(',') > 0) {
+            // if(this.detail.data.fromLocationName.indexOf(',') > 0) {
                 for(let index in this.specimenTransferTask['fromLocationList']) {
                     if(result == this.specimenTransferTask['fromLocationList'][index]['code']) {
+                        isScanSuccess = true;
                         if(!this.specimenTransferTask['fromLocationList'][index]['isDone']) {
                             this.specimenTransferTask['fromLocationList'][index]['isDone'] = true;
                             this.service.saveSpecimenTransferTask(this.item.billNo,this.specimenTransferTask);
@@ -256,6 +259,14 @@ export class ItemDetailPage {
                         
                     }
                 }
+                if(!isScanSuccess) {
+                    let alert = this.alertCtrl.create({
+                        title: "提示",
+                        message: "请扫描正确的始发科室二维码",
+                        buttons: ["确定"]
+                    });
+                    alert.present();
+                }
                 //遍历是否都完成
                 let isCompleted = true;
                 for(let index in this.specimenTransferTask['fromLocationList']) {
@@ -267,7 +278,8 @@ export class ItemDetailPage {
                     //扫描全部始发科室后，开始任务
                     this.process(this.item, this.index, {note: STATUS_STARTED, supp: ''});
                 }
-            }
+            
+            
         }
         else {
             if (result == this.detail.data.fromLocationCode) {
@@ -287,10 +299,12 @@ export class ItemDetailPage {
     processCompleted(result:string) {
         console.log(result);
         if(this.detail.data.transferType == '标本') {
+            let isScanSuccess = false;
             //多个目的科室
-            if(this.detail.data.toLocationCode.indexOf(',') > 0) {
+            // if(this.detail.data.toLocationCode.indexOf(',') > 0) {
                 for(let index in this.specimenTransferTask['toLocationList']) {
                     if(result == this.specimenTransferTask['toLocationList'][index]['code']) {
+                        isScanSuccess = true;
                         if(!this.specimenTransferTask['toLocationList'][index]['isDone']) {
                             this.specimenTransferTask['toLocationList'][index]['isDone'] = true;
                             this.service.saveSpecimenTransferTask(this.item.billNo,this.specimenTransferTask);
@@ -305,6 +319,15 @@ export class ItemDetailPage {
                         
                     }
                 }
+
+                if(!isScanSuccess) {
+                    let alert = this.alertCtrl.create({
+                        title: "提示",
+                        message: "请扫描正确的目的科室二维码",
+                        buttons: ["确定"]
+                    });
+                    alert.present();
+                }
                 //遍历是否都完成
                 let isCompleted = true;
                 for(let index in this.specimenTransferTask['toLocationList']) {
@@ -316,21 +339,8 @@ export class ItemDetailPage {
                     //运送任务完成
                     this.process(this.item, this.index, { note: STATUS_COMPLETED, supp: '' });
                 }
-            }
-            else {
-                if(this.detail.data.toLocationCode) {
-                    if (result == this.detail.data.toLocationCode) {
-                        this.process(this.item, this.index, { note: STATUS_COMPLETED, supp: '' });
-                    } else {
-                        let alert = this.alertCtrl.create({
-                            title: "提示",
-                            message: "请扫描正确的目的科室(" + this.detail.data.toLocationName + ")二维码",
-                            buttons: ["确定"]
-                        });
-                        alert.present();
-                    }
-                }
-            }
+            
+            
         }else {
             //目的科室不为空，则扫描目的科室
             if(this.detail.data.toLocationCode) {
